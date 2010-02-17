@@ -1,6 +1,9 @@
 require File.dirname(__FILE__) + '/../lib/cucumber2rspec'
 require File.dirname(__FILE__) + '/features/the_steps'
 
+# TODO create a matcher that will show you the line(s) that don't match between 2 big strings (when it fails)
+#      or just the 1st non-matching string
+
 describe Cucumber2RSpec do
 
   describe 'basic' do
@@ -8,6 +11,20 @@ describe Cucumber2RSpec do
     before do
       code = File.read File.dirname(__FILE__) + '/features/basic.feature'
       @feature = Cucumber2RSpec::Feature.new code
+      @desired_code = <<code
+  it "Create a dog" do
+    @dogs.should(be_nil)
+    @your_mom = "Mommy"
+
+    @dogs ||= []
+    (@dogs << "A dog")
+    @view = @dogs.inspect
+
+    @your_mom.should_not(be_nil)
+    @view.should_not(be_nil)
+    @view.should(include("A dog"))
+  end
+code
     end
 
     it 'should be able to load up a feature and get its name' do
@@ -38,26 +55,22 @@ describe Cucumber2RSpec do
       scenario.steps[1].code.should    == '@your_mom = "Mommy"'
 
       scenario.steps[2].keyword.should == 'When'
-      scenario.steps[2].code.should    == "@dogs ||= []\n  (@dogs << \"A dog\")"
+      scenario.steps[2].code.should    == "@dogs ||= []\n(@dogs << \"A dog\")" # <--- we strip spaces
     end
 
     it 'should be able to get the code for a scenario' do
       scenario = @feature.scenarios.first
-      
-      scenario.code.should == <<code
-  it 'Create a dog' do
-    @dogs.should be_nil
-    @your_mom = 'Mommy'
 
-    @dogs ||= []
-    @dogs << 'A dog'
-    @view = @dogs.inspect
+      desired_lines   = @desired_code.split("\n")
+      generated_lines = scenario.code.split("\n")
 
-    @your_mom.should_not be_nil
-    @view.should_not be_nil
-    @view.should include('A dog')
-  end
-code
+      desired_lines.each_with_index do |desired_line, i|
+        desired_line.should == generated_lines[i]
+      end
+    end
+
+    it 'should be able to get the code for a feature' do
+      @feature.code.should == %{describe "Manage dogs" do\n\n#{ @desired_code }\nend}
     end
 
     it 'should be able to override how the "it" block is written'
@@ -66,12 +79,11 @@ code
 
   Dir[File.dirname(__FILE__) + '/desired_specs/*_spec.rb'].each do |spec_file|
     name = File.basename(spec_file).sub(/_spec\.rb$/, '')
-    code = File.read spec_file
-    spec = Cucumber2RSpec.translate code
+    feature_text = File.read File.join(File.dirname(__FILE__), 'features', "#{name}.feature")
+    desired_code = File.read(spec_file).strip
 
     it "#{name} feature should convert to the desired #{name} rspec code" do
-      pending
-      code.should == spec
+      Cucumber2RSpec.translate(feature_text).should == desired_code
     end
 
   end

@@ -1,6 +1,8 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
 # Last tested with cucumber (0.3.11, 0.3.3
+#
+# Note: String#indent comes from cucumber
 
 require 'rubygems'
 require 'parse_tree'
@@ -22,7 +24,7 @@ class Cucumber2RSpec
   end
 
   def self.translate feature_text
-    ""
+    Cucumber2RSpec::Feature.new(feature_text).code
   end
 
   class Feature
@@ -42,6 +44,12 @@ class Cucumber2RSpec
     def scenarios
       @_feature.instance_variable_get('@feature_elements').map {|scenario| Scenario.new(self, scenario) }
     end
+
+    def code
+      the_code = 'describe ' + name.inspect + ' do' + "\n\n"
+      scenarios.each {|scenario| the_code << scenario.code + "\n" }
+      the_code << "\nend"
+    end
   end
 
   class Scenario
@@ -58,6 +66,28 @@ class Cucumber2RSpec
 
     def steps
       @_scenario.instance_variable_get('@steps').map {|step| Step.new(self, step) }
+    end
+
+    def code
+      groups = {
+        'Given' => [],
+        'When'  => [],
+        'Then'  => []
+      }
+
+      steps.each do |step|
+        groups[step.keyword] << step.code
+      end
+
+      the_code = '  it ' + name.inspect + " do\n"
+      groups['Given'].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code << "\n" if groups['Given'].length > 0
+      
+      groups['When' ].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code << "\n" if groups['When'].length > 0
+
+      groups['Then' ].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code << '  end'
     end
   end
 
@@ -87,7 +117,7 @@ class Cucumber2RSpec
 
     def code
       the_proc = _step_definition.instance_variable_get('@proc')
-      the_proc.to_ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '')
+      the_proc.to_ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '').gsub(/\n[ ]+/, "\n")
     end
   end
 

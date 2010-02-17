@@ -41,6 +41,27 @@ describe Cucumber2RSpec do
       scenario.steps[2].code.should    == "@dogs ||= []\n  (@dogs << \"A dog\")"
     end
 
+    it 'should be able to get the code for a scenario' do
+      scenario = @feature.scenarios.first
+      
+      scenario.code.should == <<code
+  it 'Create a dog' do
+    @dogs.should be_nil
+    @your_mom = 'Mommy'
+
+    @dogs ||= []
+    @dogs << 'A dog'
+    @view = @dogs.inspect
+
+    @your_mom.should_not be_nil
+    @view.should_not be_nil
+    @view.should include('A dog')
+  end
+code
+    end
+
+    it 'should be able to override how the "it" block is written'
+
   end
 
   Dir[File.dirname(__FILE__) + '/desired_specs/*_spec.rb'].each do |spec_file|

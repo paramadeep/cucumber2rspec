@@ -8,9 +8,18 @@ require 'parse_tree_extensions'
 require 'ruby2ruby'
 require 'cucumber'
 
-Cucumber.load_language('en')
+$step_match = method(:step_match)
 
 class Cucumber2RSpec
+
+  def self.parser
+    Cucumber.load_language('en')
+    @parser ||= Cucumber::Parser::FeatureParser.new
+  end
+
+  def self.step_match text
+    $step_match.call(text)
+  end
 
   def self.translate feature_text
     ""
@@ -19,13 +28,9 @@ class Cucumber2RSpec
   class Feature
     attr_reader :raw, :name, :_feature
 
-    def self.parser
-      @parser ||= Cucumber::Parser::FeatureParser.new
-    end
-
     def initialize raw_feature_text
       @raw      = raw_feature_text
-      @_feature = Feature.parser.parse_or_fail(raw) # Cucumber::Ast::Feature
+      @_feature = Cucumber2RSpec.parser.parse_or_fail(raw) # Cucumber::Ast::Feature
     end
 
     def name
@@ -74,6 +79,15 @@ class Cucumber2RSpec
 
     def full_text
       "#{keyword} #{text}"
+    end
+
+    def _step_definition
+      Cucumber2RSpec.step_match(text).instance_variable_get('@step_definition')
+    end
+
+    def code
+      the_proc = _step_definition.instance_variable_get('@proc')
+      the_proc.to_ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '')
     end
   end
 

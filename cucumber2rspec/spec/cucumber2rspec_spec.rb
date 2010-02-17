@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../lib/cucumber2rspec'
+require File.dirname(__FILE__) + '/features/the_steps'
 
 describe Cucumber2RSpec do
 
@@ -28,7 +29,16 @@ describe Cucumber2RSpec do
     end
 
     it 'should be able to get the code for a step' do
-      pending
+      scenario = @feature.scenarios.first
+
+      scenario.steps[0].keyword.should == 'Given'
+      scenario.steps[0].code.should    == '@dogs.should(be_nil)'
+
+      scenario.steps[1].keyword.should == 'Given'
+      scenario.steps[1].code.should    == '@your_mom = "Mommy"'
+
+      scenario.steps[2].keyword.should == 'When'
+      scenario.steps[2].code.should    == "@dogs ||= []\n  (@dogs << \"A dog\")"
     end
 
   end

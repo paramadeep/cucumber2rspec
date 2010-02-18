@@ -28,6 +28,20 @@ module Cucumber2RSpec
     Cucumber2RSpec::Feature.new(feature_text).code
   end
 
+  def self.replace_in_sexp sexp, to_replace, replace_with
+    while sexp.include?(to_replace)
+      index = sexp.index(to_replace)
+      sexp.delete_at index
+      sexp.insert    index, replace_with
+    end
+    
+    sexp.each do|obj|
+      replace_in_sexp(obj, to_replace, replace_with) if obj.is_a?(Sexp)
+    end
+
+    sexp
+  end
+
 end
 
 require 'cucumber2rspec/feature'

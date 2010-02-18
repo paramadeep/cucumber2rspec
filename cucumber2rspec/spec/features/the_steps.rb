@@ -7,6 +7,7 @@ Given /^your mom$/ do
 end
 
 When /^I create a dog named "([^\"]*)"$/ do |name|
+  puts "name is the name of the block argument above"
   @dogs ||= []
   @dogs << name
 end

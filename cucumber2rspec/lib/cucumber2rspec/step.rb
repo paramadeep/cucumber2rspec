@@ -25,9 +25,51 @@ module Cucumber2RSpec #:nodoc:
       Cucumber2RSpec.step_match(text).instance_variable_get('@step_definition')
     end
 
+    def regexp
+      Regexp.new _step_definition.instance_variable_get('@regexp')
+    end
+
+    def variable_names
+      Cucumber2RSpec.block_variable_names(the_proc)
+    end
+
+    def the_proc
+      _step_definition.instance_variable_get('@proc')
+    end
+
+    def matches
+      return [] if variable_names.empty?
+
+      match = text.match(regexp)
+      if match
+        matches = {}
+        if match.captures.length != variable_names.length
+          raise "Problem getting #{ variable_names.inspect } from #{ text.inspect }."
+        end
+        variable_names.each_with_index do |name, i|
+          matches[name] = match.captures[i]
+        end
+        matches
+      else
+        []
+      end
+    end
+
     def code
-      the_proc = _step_definition.instance_variable_get('@proc')
-      the_proc.to_ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '').gsub(/\n[ ]+/, "\n")
+      if variable_names.empty?
+        ruby = the_proc.to_ruby
+        ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '') # get rid of the proc { }
+      else
+        sexp_for_proc = ParseTree.new.process(the_proc.to_ruby) # turn the proc into an Sexp
+        matches.each do |name, value|
+          Cucumber2RSpec.replace_in_sexp sexp_for_proc, Sexp.new(:lvar, name), Sexp.new(:str, value)
+        end
+        ruby = Ruby2Ruby.new.process(sexp_for_proc) # turn it back into ruby
+        ruby = ruby.sub(/^proc do \|([\w+, ]+)\|\n  /, '').sub(/\send$/, '') # get rid of the proc do |x| end
+      end
+
+      # get rid of any spaces after any newlines
+      ruby.gsub(/\n[ ]+/, "\n")
     end
   end
 end

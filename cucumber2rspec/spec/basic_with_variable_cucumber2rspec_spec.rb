@@ -39,9 +39,14 @@ describe Cucumber2RSpec, 'basic' do
     scenario.steps[1].keyword.should == 'Given'
     scenario.steps[1].code.should    == '@your_mom = "Mommy"'
 
-    scenario.steps[2].keyword.should == 'When'
-    scenario.steps[2].code.should    == 'puts "name is the name of the block argument above"' + 
-      "@dogs ||= []\n(@dogs << \"Rover\")" # <--- we strip spaces
+    step = scenario.steps[2]
+    step.keyword.should        == 'When'
+    step.regexp.should         == /^I create a dog named "([^\"]*)"$/
+    step.text.should           == 'I create a dog named "Rover"'
+    step.variable_names.should == [:name]
+    step.matches.should        == { :name => "Rover" }
+    step.code.should           == 'puts("name is the name of the block argument above")' + 
+      "\n@dogs ||= []\n(@dogs << \"Rover\")" # <--- we strip spaces
 
     #scenario.steps[3].keyword.should == 'Then'
     #scenario.steps[3].code.should    == '@your_mom.should_not(be_nil)'

@@ -8,7 +8,12 @@ describe Cucumber2RSpec, 'all translations' do
     desired_code = File.read(spec_file).strip
 
     it "#{name} feature should convert to the desired #{name} rspec code" do
-      Cucumber2RSpec.translate(feature_text).should == desired_code
+      spec_text = Cucumber2RSpec.translate(feature_text)
+      if spec_text != desired_code
+        puts "Desired:\n#{ desired_code }"
+        puts "Got:\n#{ spec_text }"
+      end
+      spec_text.should == desired_code
     end
 
   end

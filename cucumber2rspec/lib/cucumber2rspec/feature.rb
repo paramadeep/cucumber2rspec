@@ -21,8 +21,8 @@ module Cucumber2RSpec #:nodoc:
 
     def code
       the_code = 'describe ' + name.inspect + ' do' + "\n\n"
-      scenarios.each {|scenario| the_code << scenario.code + "\n" }
-      the_code << "\nend"
+      scenarios.each {|scenario| the_code << scenario.code + "\n\n" }
+      the_code << "end"
     end
   end
 end

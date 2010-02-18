@@ -42,6 +42,30 @@ module Cucumber2RSpec
     sexp
   end
 
+  def self.block_variable_names a_proc
+    sexp               = a_proc.to_sexp
+    local_assignments  = []
+
+    # this is where the variables hang out ...
+    if sexp[2] and sexp[2].is_a?(Sexp)
+      
+      # there's only 1 local assigned variable
+      if sexp[2][0] == :lasgn
+        local_assignments << sexp[2][1]
+        
+      # there's an array of locally assigned variables
+      elsif sexp[2][0] == :masgn and sexp[2][1][0] == :array # mass assignment using an array
+        array_of_variables = a_proc.to_sexp[2][1]
+        the_type           = array_of_variables.shift
+        array_of_variables.each do |sub_sexp|
+          local_assignments << sub_sexp[1] if sub_sexp[0] == :lasgn
+        end
+      end
+    end
+
+    local_assignments
+  end
+
 end
 
 require 'cucumber2rspec/feature'

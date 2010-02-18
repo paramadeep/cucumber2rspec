@@ -57,4 +57,11 @@ describe 'Sexp stuff' do
     #do_stuff(real).should == desired
   end
 
+  it "should be able to get the names of a block's block variables" do
+    Cucumber2RSpec.block_variable_names(proc {               puts "hi" }).should == []
+    Cucumber2RSpec.block_variable_names(proc {|hi|           puts "hi" }).should == [:hi]
+    Cucumber2RSpec.block_variable_names(proc {|hi, there|    puts "hi" }).should == [:hi, :there]
+    Cucumber2RSpec.block_variable_names(proc {|hi, there, x| puts "hi" }).should == [:hi, :there, :x]
+  end
+
 end

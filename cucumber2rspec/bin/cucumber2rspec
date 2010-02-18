@@ -1,0 +1,17 @@
+#! /usr/bin/env ruby
+require File.dirname(__FILE__) + '/../lib/cucumber2rspec'
+
+unless ARGV.length >= 2
+  puts "Usage: cucumber2rspec dir/with/step_definitions feature1 feature2 ..."
+  exit
+end
+
+steps_dir = ARGV.shift
+puts "Loading steps ..."
+Dir[File.join(steps_dir, '**', '*_steps.rb')].each {|step_file| require step_file }
+
+feature = ARGV.shift
+puts "Feature to convert: #{ File.basename(feature) }"
+puts Cucumber2RSpec.translate_file feature
+
+# vim:set ft=ruby:

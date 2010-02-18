@@ -56,6 +56,8 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      puts "  #{ text }"
+      puts "    code: #{ the_proc.to_ruby }"
       if variable_names.empty?
         ruby = the_proc.to_ruby
         ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '') # get rid of the proc { }

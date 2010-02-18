@@ -18,6 +18,7 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      puts "Generating for for #{ name.inspect }"
       groups = {
         'Given' => [],
         'When'  => [],

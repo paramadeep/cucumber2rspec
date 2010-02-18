@@ -11,7 +11,7 @@ describe "Manage dogs" do
 
     @your_mom.should_not(be_nil)
     @view.should_not(be_nil)
-    @view.should(include("A dog"))
+    @view.should(include("Rover"))
   end
 
 end

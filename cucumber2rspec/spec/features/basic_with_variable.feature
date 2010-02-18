@@ -8,4 +8,4 @@ Scenario: Create a dog
   And your mom
   When I create a dog named "Rover"
   And I view all dogs
-  Then your mom should see a dog
+  Then your mom should see "Rover"

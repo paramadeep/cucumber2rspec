@@ -12,6 +12,11 @@ describe Cucumber2RSpec, 'all translations' do
       if spec_text != desired_code
         puts "Desired:\n#{ desired_code }"
         puts "Got:\n#{ spec_text }"
+
+        # check the lines so we fail on the first non-matching line
+        desired_code.length.times do |i|
+          desired_code.split("\n")[i].should == spec_text.split("\n")[i]
+        end
       end
       spec_text.should == desired_code
     end

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/spec_helper'
 
-describe Cucumber2RSpec, 'basic' do
+describe Cucumber2RSpec, 'basic with variable' do
 
   before do
     code = File.read File.dirname(__FILE__) + '/features/basic_with_variable.feature'

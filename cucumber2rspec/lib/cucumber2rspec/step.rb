@@ -4,17 +4,42 @@ module Cucumber2RSpec #:nodoc:
   class Step
     attr_reader :scenario, :_step
 
+    def self.code_for_steps steps
+      the_code = ''
+      groups   = {
+        'Given' => [],
+        'When'  => [],
+        'Then'  => []
+      }
+
+      last_keyword = 'Given'
+      steps.each do |step|
+        keyword = (step.keyword == 'And') ? last_keyword : step.keyword
+        groups[keyword] << step.code
+        last_keyword = step.keyword unless step.keyword == 'And'
+      end
+
+      groups['Given'].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code << "\n" if groups['Given'].length > 0
+      
+      groups['When' ].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code << "\n" if groups['When'].length > 0
+
+      groups['Then' ].each {|code| the_code << (code.indent(4) + "\n") }
+      the_code
+    end
+
     def initialize scenario, cucumber_ast_step_invocation
       @scenario = scenario
       @_step    = cucumber_ast_step_invocation # Cucumber::Ast::StepInvocation
     end
 
     def keyword
-      @_step.actual_keyword
+      _step.respond_to?(:actual_keyword) ? _step.actual_keyword : _step.keyword
     end
 
     def text
-      @_step.to_sexp.last
+      _step.to_sexp.last
     end
 
     def full_text
@@ -56,8 +81,6 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
-      puts "  #{ text }"
-      puts "    code: #{ the_proc.to_ruby }"
       if variable_names.empty?
         ruby = the_proc.to_ruby
         ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '') # get rid of the proc { }

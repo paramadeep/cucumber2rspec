@@ -20,6 +20,10 @@ describe Cucumber2RSpec, 'basic' do
   end
 code
   end
+  
+  it 'should be able to get the background code' do
+    @feature.code.should_not include("before do")
+  end
 
   it 'should be able to load up a feature and get its name' do
     @feature.name.should == 'Manage dogs'

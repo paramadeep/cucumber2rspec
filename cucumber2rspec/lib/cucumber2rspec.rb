@@ -73,5 +73,6 @@ module Cucumber2RSpec
 end
 
 require 'cucumber2rspec/feature'
+require 'cucumber2rspec/background'
 require 'cucumber2rspec/scenario'
 require 'cucumber2rspec/step'

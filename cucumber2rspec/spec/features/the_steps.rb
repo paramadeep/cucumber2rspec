@@ -42,6 +42,13 @@ When /^I create the following dogs$/ do |table|
   end
 end
 
+When /^I create the following "(\w+)"$/ do |var, table|
+  eval "@#{var} ||= []"
+  table.hashes.each do |hash|
+    instance_variable_get("@#{var}") << "#{hash['name']}: #{hash['breed']}"
+  end
+end
+
 Then /^your mom should see a dog$/ do
   @your_mom.should_not be_nil
   @view.should_not be_nil

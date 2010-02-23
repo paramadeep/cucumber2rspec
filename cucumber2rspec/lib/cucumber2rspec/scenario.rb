@@ -29,6 +29,7 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      Cucumber2RSpec.log { '  ' + name }
       the_code = '  it ' + name.inspect + " do\n"
       the_code << code_without_block
       the_code << '  end'

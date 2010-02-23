@@ -25,6 +25,7 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      Cucumber2RSpec.log { name }
       the_code = 'describe ' + name.inspect + ' do' + "\n\n"
       the_code << background.code + "\n\n" if background
       scenarios.each {|scenario| the_code << scenario.code + "\n\n" }

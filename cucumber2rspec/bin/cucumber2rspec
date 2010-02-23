@@ -1,5 +1,8 @@
 #! /usr/bin/env ruby
 require File.dirname(__FILE__) + '/../lib/cucumber2rspec'
+require 'logger'
+Cucumber2RSpec.logger = Logger.new(STDOUT)
+Cucumber2RSpec.logger.level = Logger::DEBUG
 
 unless ARGV.length >= 2
   puts "Usage: cucumber2rspec dir/with/step_definitions feature1 feature2 ..."

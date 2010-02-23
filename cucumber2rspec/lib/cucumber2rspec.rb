@@ -15,6 +15,14 @@ $step_match = method(:step_match)
 # ...
 module Cucumber2RSpec
 
+  class << self
+    attr_accessor :logger
+  end
+
+  def self.log &block
+    logger.debug(&block) if logger
+  end
+
   def self.parser
     Cucumber.load_language('en')
     @parser ||= Cucumber::Parser::FeatureParser.new
@@ -29,6 +37,7 @@ module Cucumber2RSpec
   end
 
   def self.translate_file filepath
+    Cucumber2RSpec.log { "translate_file(#{filepath.inspect})" }
     translate File.read(filepath)
   end
 

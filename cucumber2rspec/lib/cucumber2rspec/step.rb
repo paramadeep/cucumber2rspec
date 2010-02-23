@@ -66,8 +66,19 @@ module Cucumber2RSpec #:nodoc:
       Regexp.new _step_definition.instance_variable_get('@regexp')
     end
 
-    def variable_names
+    def raw_variable_names
       Cucumber2RSpec.block_variable_names(the_proc)
+    end
+
+    def variable_names
+      # if has_table? then we ignore the last block variable (which is the table)
+      variables = raw_variable_names
+      variables.pop if has_table?
+      variables
+    end
+
+    def table_variable_name
+      raw_variable_names.last if has_table?
     end
 
     def the_proc
@@ -93,36 +104,41 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      Cucumber2RSpec.log { '    ' + text }
+
+      if has_table?
+        # require cucumber and create a local variable defining the cucumber table
+        header = "require 'cucumber'\n"
+        header << "#{table_variable_name} = Cucumber::Ast::Table.new(#{ table.raw.inspect })\n"
+      end
+
       if variable_names.empty?
         ruby = the_proc.to_ruby
-        ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '') # get rid of the proc { }
 
-      elsif has_table?
-        if variable_names.length != 1
-          raise "Hmm ... the #{ text.inspect } step has a table.  We expected 1 block argument for the step."
+        if has_table?
+          # get rid of proc { |table| }
+          ruby = ruby.sub(/^proc \{ \|#{table_variable_name}\|\s+/, '').sub(/\s\}$/, '')
         else
-          var  = variable_names.first
-
-          # create the ruby ... very like a normal proc, we strip out the proc { |var| } and keep the rest
-          ruby = the_proc.to_ruby
-          ruby = ruby.sub(/^proc \{ \|#{var}\|\s+/, '').sub(/\s\}$/, '') # get rid of the proc { |var| }
-
-          # require cucumber and create a local variable defining the cucumber table
-          header = "require 'cucumber'\n"
-          header << "#{var} = Cucumber::Ast::Table.new(#{ table.raw.inspect })\n"
-          
-          # the end result should be the header (defining the table variable) and the ruby code
-          ruby = header + ruby
+          # get rid of proc { }
+          ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '')
         end
 
       else
         sexp_for_proc = ParseTree.new.process(the_proc.to_ruby) # turn the proc into an Sexp
         matches.each do |name, value|
-          Cucumber2RSpec.replace_in_sexp sexp_for_proc, Sexp.new(:lvar, name), Sexp.new(:str, value)
+          str = Sexp.new(:str, value)
+
+          # s(:lvar, :var) => s(:str, "dogs")
+          Cucumber2RSpec.replace_in_sexp sexp_for_proc, Sexp.new(:lvar, name), str
+
+          # s(:evstr, s(:str, "dogs")) => s(:str, "dogs")
+          Cucumber2RSpec.replace_in_sexp sexp_for_proc, Sexp.new(:evstr, str), str
         end
         ruby = Ruby2Ruby.new.process(sexp_for_proc) # turn it back into ruby
         ruby = ruby.sub(/^proc do \|([\w+, ]+)\|\n  /, '').sub(/\send$/, '') # get rid of the proc do |x| end
       end
+
+      ruby = header + ruby if has_table?
 
       # get rid of any spaces after any newlines
       ruby.gsub(/\n[ ]+/, "\n")

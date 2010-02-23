@@ -38,8 +38,20 @@ module Cucumber2RSpec #:nodoc:
       _step.respond_to?(:actual_keyword) ? _step.actual_keyword : _step.keyword
     end
 
+    def table
+      _step.multiline_arg if _step.respond_to?(:multiline_arg)
+    end
+
+    def has_table?
+      !! table
+    end
+
     def text
-      _step.to_sexp.last
+      if has_table?
+        _step.to_sexp[ _step.to_sexp.length - 2 ] # the last argument will be the table!
+      else
+        _step.to_sexp.last
+      end
     end
 
     def full_text
@@ -84,6 +96,25 @@ module Cucumber2RSpec #:nodoc:
       if variable_names.empty?
         ruby = the_proc.to_ruby
         ruby = ruby.sub(/^proc \{\s+/, '').sub(/\s\}$/, '') # get rid of the proc { }
+
+      elsif has_table?
+        if variable_names.length != 1
+          raise "Hmm ... the #{ text.inspect } step has a table.  We expected 1 block argument for the step."
+        else
+          var  = variable_names.first
+
+          # create the ruby ... very like a normal proc, we strip out the proc { |var| } and keep the rest
+          ruby = the_proc.to_ruby
+          ruby = ruby.sub(/^proc \{ \|#{var}\|\s+/, '').sub(/\s\}$/, '') # get rid of the proc { |var| }
+
+          # require cucumber and create a local variable defining the cucumber table
+          header = "require 'cucumber'\n"
+          header << "#{var} = Cucumber::Ast::Table.new(#{ table.raw.inspect })\n"
+          
+          # the end result should be the header (defining the table variable) and the ruby code
+          ruby = header + ruby
+        end
+
       else
         sexp_for_proc = ParseTree.new.process(the_proc.to_ruby) # turn the proc into an Sexp
         matches.each do |name, value|

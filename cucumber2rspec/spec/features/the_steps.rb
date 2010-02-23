@@ -33,6 +33,15 @@ When /^I create a dog$/ do
   @dogs << 'A dog'
 end
 
+# table.hashes:
+# [{"name"=>"Rover", "breed"=>"Golden Retriever"}, {"name"=>"Rex", "breed"=>"Boxer"}]
+When /^I create the following dogs$/ do |table|
+  @dogs ||= []
+  table.hashes.each do |hash|
+    @dogs << "#{hash['name']}: #{hash['breed']}"
+  end
+end
+
 Then /^your mom should see a dog$/ do
   @your_mom.should_not be_nil
   @view.should_not be_nil

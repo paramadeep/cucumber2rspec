@@ -54,3 +54,14 @@ Then /^your mom should see a dog$/ do
   @view.should_not be_nil
   @view.should include('A dog')
 end
+
+Given /^say "(.*)"$/ do |stuff|
+  puts "The dog says: #{ stuff }"
+end
+
+Then /^something with a given "(\w+)"$/ do |var|
+  puts "our var: #{ var }"
+  puts "before"
+  Given 'say "hello"'
+  puts "after"
+end

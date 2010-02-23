@@ -124,6 +124,7 @@ module Cucumber2RSpec #:nodoc:
         end
 
       else
+        # TODO replace with the_proc.to_sexp
         sexp_for_proc = ParseTree.new.process(the_proc.to_ruby) # turn the proc into an Sexp
         matches.each do |name, value|
           str = Sexp.new(:str, value)

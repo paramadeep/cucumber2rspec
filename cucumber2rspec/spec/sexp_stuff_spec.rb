@@ -64,4 +64,24 @@ describe 'Sexp stuff' do
     Cucumber2RSpec.block_variable_names(proc {|hi, there, x| puts "hi" }).should == [:hi, :there, :x]
   end
 
+  it 'should be able to get calls to Given/When/Then from sexp' do
+    pending "hmm ... i don't know if this will work when we call Given() with a step that accepts variables ..."
+
+    sexp = lambda { 1; Given("step name"); 2; }.to_sexp
+    Cucumber2RSpec.inner_steps_for(sexp)['Given'].should == ['step name']
+
+    sexp = lambda { 1; Given("step name"); 5.times { 2.times { Given('hi there') } } }.to_sexp
+    Cucumber2RSpec.inner_steps_for(sexp)['Given'].should == ['step name']
+  end
+
+  # >> lambda { 1; Given("step name"); 2; }.to_sexp
+  # => s:iter, s:call, nil, :proc, s:arglist, nil, s:block, s:call, nil, :Given, s:arglist, s:str, "step name", s:lit, 2
+  # >> lambda { 1; puts("code here"); 2; }.to_sexp
+  # => s:iter, s:call, nil, :proc, s:arglist, nil, s:block, s:call, nil, :puts, s:arglist, s:str, "code here", s:lit, 2
+  it 'should be able to replace a call to a method with code (from a proc)' do
+    pending
+    given = lambda { 1; Given("step name"); 2; }.to_sexp
+    code  = lambda { 1; puts("code here"); 2; }.to_sexp
+  end
+
 end

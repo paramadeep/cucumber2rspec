@@ -18,6 +18,7 @@ module Cucumber2RSpec #:nodoc:
     end
 
     def code
+      Cucumber2RSpec.log { '  Background' }
       the_code = "  before do\n"
       the_code << code_without_block.sub(/\n$/, '') # kill the last newline
       the_code << '  end'

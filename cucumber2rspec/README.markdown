@@ -1,4 +1,4 @@
 cucumber2rspec
 ==============
 
-Better project name and details coming soon!
+Convert Cucumber features to RSpec

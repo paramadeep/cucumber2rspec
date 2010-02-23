@@ -1,7 +1,7 @@
 #! /usr/bin/env ruby
 require File.dirname(__FILE__) + '/../lib/cucumber2rspec'
 require 'logger'
-Cucumber2RSpec.logger = Logger.new(STDOUT)
+Cucumber2RSpec.logger = Logger.new(STDERR)
 Cucumber2RSpec.logger.level = Logger::DEBUG
 
 unless ARGV.length >= 2
@@ -10,11 +10,11 @@ unless ARGV.length >= 2
 end
 
 steps_dir = ARGV.shift
-puts "Loading steps ..."
+Cucumber2RSpec.log { "Loading steps ..." }
 Dir[File.join(steps_dir, '**', '*_steps.rb')].each {|step_file| require step_file }
 
 feature = ARGV.shift
-puts "Feature to convert: #{ File.basename(feature) }"
+Cucumber2RSpec.log { "Feature to convert: #{ File.basename(feature) }" }
 puts Cucumber2RSpec.translate_file feature
 
 # vim:set ft=ruby:
